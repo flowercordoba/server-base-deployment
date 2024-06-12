@@ -1,31 +1,35 @@
-
-import express, { Router } from 'express';
-import { Password } from '../controllers/password';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Router } from 'express';
+import { AuthService } from '../services/auth.service';
+import { SignUp } from '../controllers/signup';
 import { SignIn } from '../controllers/signin';
 import { SignOut } from '../controllers/signout';
-import { SignUp } from '../controllers/signup';
+import { Password } from '../controllers/password';
+import { TokenController } from '../controllers/refresh-token';
 
-class AuthRoutes {
-  private router: Router;
+export class AuthRoutes {
+  static get routes(): Router {
+    const router = Router();
 
-  constructor() {
-    this.router = express.Router();
-  }
+    // Crear instancia de AuthService sin EmailService
+    const authService = new AuthService();
+    
+    const signUpController = new SignUp(authService);
+    const signInController = new SignIn(authService);
+    const tokenController = new TokenController(authService);
+    const passwordController = new Password({} as any); // Ajusta el constructor según tus necesidades
+    
+    // Definir las rutas
+    router.post('/signin', signInController.read);
+    router.post('/signup', signUpController.create);
+    router.post('/refresh-token', tokenController.refreshToken);
+    router.post('/forgot-password', passwordController.create);
+    router.post('/reset-password/:token', passwordController.update);
+    router.get('/signout', (req, res) => {
+      const signOutController = new SignOut();
+      signOutController.update(req, res);
+    });
 
-  public routes(): Router {
-    this.router.post('/signup', SignUp.prototype.create);
-    this.router.post('/signin', SignIn.prototype.read);
-    this.router.post('/forgot-password', Password.prototype.create);
-    this.router.post('/reset-password/:token', Password.prototype.update);
-
-    return this.router;
-  }
-
-  public signoutRoute(): Router {
-    this.router.get('/signout', SignOut.prototype.update);
-
-    return this.router;
+    return router;
   }
 }
-
-export const authRoutes: AuthRoutes = new AuthRoutes();

@@ -21,8 +21,14 @@ class Config {
   public SENDGRID_SENDER: string | undefined;
   public EC2_URL: string | undefined;
   public PORT: string | number;
+  public MAILER_SERVICE: string | undefined;        // Añadir esta línea
+  public POST_TO_PROVIDER: boolean;                // Añadir esta línea
 
   private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/chattyapp-backend';
+  mailerService!: string;
+  mailerEmail!: string;
+  senderEmailPassword!: string;
+  postToProvider!: boolean;
 
   constructor() {
     this.DATABASE_URL = process.env.DATABASE_URL || this.DEFAULT_DATABASE_URL;
@@ -41,6 +47,8 @@ class Config {
     this.SENDGRID_SENDER = process.env.SENDGRID_SENDER || '';
     this.EC2_URL = process.env.EC2_URL || '';
     this.PORT = process.env.PORT || '';
+    this.MAILER_SERVICE = process.env.MAILER_SERVICE || ''; // Añadir esta línea
+    this.POST_TO_PROVIDER = process.env.POST_TO_PROVIDER === 'true'; // Añadir esta línea
   }
 
   public createLogger(name: string): bunyan {
@@ -54,7 +62,7 @@ class Config {
       }
     }
   }
-// cambiar luego al estar en produccion
+
   public cloudinaryConfig(): void {
     cloudinary.v2.config({
       cloud_name: 'dzqpacupf',
