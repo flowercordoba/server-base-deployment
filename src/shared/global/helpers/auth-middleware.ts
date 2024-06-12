@@ -1,32 +1,49 @@
-// import { Request, Response, NextFunction } from 'express';
-// import JWT from 'jsonwebtoken';
-// import { config } from '@root/config';
-// import { NotAuthorizedError } from '@globals/helpers/error-handler';
-// import { AuthPayload } from '@auth/interfaces/auth.interface';
+import { NextFunction, Request, Response } from 'express';
+import { JwtAdapter } from '../../config';
+import { AuthModel } from '@root/feactures/auth/models/auth.model';
+import { UserEntity } from '@root/feactures/auth/entities/user.entity';
 
-// export class AuthMiddleware {
-//   public verifyUser(req: Request, _res: Response, next: NextFunction): void {
-//     if (!req.session?.jwt) {
-//       // console.log('!req.session?.jwt', !req.session?.jwt);
-//       throw new NotAuthorizedError('Token is not available. Please login again.');
-//     }
+export class AuthMiddleware {
+  static async validateJWT(req: Request, res: Response, next: NextFunction) {
+    const authorization = req.header('Authorization');
+    console.log('Authorization header:', authorization);
 
-//     try {
-//       const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload;
-//       req.currentUser = payload;
-//       // console.log('payload', payload);
-//     } catch (error) {
-//       throw new NotAuthorizedError('Token is invalid. Please login again.');
-//     }
-//     next();
-//   }
+    if (!authorization) {
+      console.log('No token provided');
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    if (!authorization.startsWith('Bearer ')) {
+      console.log('Invalid Bearer token');
+      return res.status(401).json({ error: 'Invalid Bearer token' });
+    }
 
-//   public checkAuthentication(req: Request, _res: Response, next: NextFunction): void {
-//     if (!req.currentUser) {
-//       throw new NotAuthorizedError('Authentication is required to access this route.');
-//     }
-//     next();
-//   }
-// }
+    const token = authorization.split(' ')[1] || '';
+    console.log('Token:', token);
 
-// export const authMiddleware: AuthMiddleware = new AuthMiddleware();
+    try {
+      const payload = await JwtAdapter.validateToken<{ id: string }>(token);
+      console.log('Payload:', payload);
+      
+      if (!payload) {
+        console.log('Invalid token');
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      const user = await AuthModel.findById(payload.id);
+      console.log('User:', user);
+      
+      if (!user) {
+        console.log('Invalid token - user not found');
+        return res.status(401).json({ error: 'Invalid token - user' });
+      }
+
+      req.body.user = UserEntity.fromObject(user);
+      console.log('UserEntity:', req.body.user);
+
+      next();
+    } catch (error) {
+      console.log('Internal server error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
