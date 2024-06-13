@@ -15,15 +15,16 @@ export class TokenController {
     return res.status(500).json({ error: 'Internal server error' });
   };
 
-  public async refreshToken(req: Request, res: Response): Promise<Response> {
-    const { username } = req.body;
+  public refreshToken = async (req: Request, res: Response): Promise<Response> => {
+    console.log('name', req.body);
+    const { name } = req.body;
 
-    if (!username) {
-      return res.status(400).json({ error: 'Username is required' });
+    if (!name) {
+      return res.status(400).json({ error: 'name is required' });
     }
 
     try {
-      const user = await this.authService.getUserByUsername(username);
+      const user = await this.authService.getUserByUsername(name);
       if (!user) {
         throw CustomError.notFound('User not found');
       }
@@ -33,7 +34,7 @@ export class TokenController {
     } catch (error) {
       return this.handleError(error, res);
     }
-  }
+  };
 }
 
 // Función de middleware para manejar el token

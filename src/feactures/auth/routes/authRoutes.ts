@@ -6,6 +6,7 @@ import { SignIn } from '../controllers/signin';
 import { SignOut } from '../controllers/signout';
 import { Password } from '../controllers/password';
 import { TokenController } from '../controllers/refresh-token';
+import { AuthMiddleware } from '@globals/helpers/auth-middleware';
 
 export class AuthRoutes {
   static get routes(): Router {
@@ -22,10 +23,10 @@ export class AuthRoutes {
     // Definir las rutas
     router.post('/signin', signInController.read);
     router.post('/signup', signUpController.create);
-    router.post('/refresh-token', tokenController.refreshToken);
-    router.post('/forgot-password', passwordController.create);
-    router.post('/reset-password/:token', passwordController.update);
-    router.get('/signout', (req, res) => {
+    router.post('/refresh-token', AuthMiddleware.validateJWT ,  tokenController.refreshToken);
+    router.post('/forgot-password',AuthMiddleware.validateJWT ,  passwordController.create);
+    router.post('/reset-password/:token',AuthMiddleware.validateJWT ,  passwordController.update);
+    router.get('/signout',AuthMiddleware.validateJWT ,  (req, res) => {
       const signOutController = new SignOut();
       signOutController.update(req, res);
     });

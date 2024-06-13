@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Request, Response } from 'express';
 import { CurrentUserService } from '../services/current-user.service';
 import { CustomError } from '@globals/helpers/custom.error';
@@ -7,16 +6,16 @@ import { StatusCodes } from 'http-status-codes';
 export class CurrentUser {
   constructor(public readonly currentUserService: CurrentUserService) {}
 
-  private handleError = (error: unknown, res: Response) => {
+  private handleError = (error: unknown, res: Response): Response => {
     if (error instanceof CustomError) {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
-    console.log(`${error}`);
+    console.error(error);
     return res.status(500).json({ error: 'Internal server error' });
   };
 
-  public async read(req: Request, res: Response): Promise<void> {
+  public read = async (req: Request, res: Response): Promise<void> => {
     try {
       const currentUser = req.body.user;
       if (!currentUser || !currentUser.id) {
@@ -32,9 +31,9 @@ export class CurrentUser {
     } catch (error) {
       this.handleError(error, res);
     }
-  }
+  };
 
-  public async getCurrentUser(req: Request, res: Response): Promise<void> {
+  public getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const currentUser = req.body.user;
       if (!currentUser || !currentUser.id) {
@@ -50,19 +49,20 @@ export class CurrentUser {
     } catch (error) {
       this.handleError(error, res);
     }
-  }
+  };
 
-  public async refreshToken(req: Request, res: Response): Promise<void> {
-    try {
-      const { name } = req.body;
-      if (!name) {
-        throw CustomError.badRequest('Missing name');
-      }
+  public refreshToken = async (req: Request, res: Response): Promise<void> => {
+    res.send('refreshToken');
+    // try {
+    //   const { name } = req.body;
+    //   if (!name) {
+    //     throw CustomError.badRequest('Missing name');
+    //   }
 
-      const { token, user } = await this.currentUserService.refreshToken(name);
-      res.status(StatusCodes.OK).json({ token, user });
-    } catch (error) {
-      this.handleError(error, res);
-    }
-  }
+    //   const { token, user } = await this.currentUserService.refreshToken(name);
+    //   res.status(StatusCodes.OK).json({ token, user });
+    // } catch (error) {
+    //   this.handleError(error, res);
+    // }
+  };
 }

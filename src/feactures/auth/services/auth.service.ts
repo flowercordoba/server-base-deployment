@@ -91,8 +91,11 @@ export class AuthService {
     return user;
   }
 
-  public async getUserByUsername(username: string) {
-    const user = await AuthModel.findOne({ username });
+  public async getUserByUsername(name: string) {
+    console.log('Service: Looking for user by name:', name);
+
+    const user = await AuthModel.findOne({ name });
+    console.log('services username', user);
     if (!user) throw CustomError.notFound('User not found');
     return user;
   }
